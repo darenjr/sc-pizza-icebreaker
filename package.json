@@ -1,0 +1,30 @@
+{
+  "name": "sc-pizzai-icebreaker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Build Your Pizza — a mobile icebreaker game for ~60 people",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "seed": "node scripts/seed.mjs",
+    "poster": "node scripts/make-poster.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^16.3.1",
+    "qrcode": "1.5.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "24.3.0",
+    "@types/qrcode": "1.5.5",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "typescript": "5.9.2"
+  }
+}
