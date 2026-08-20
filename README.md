@@ -1,7 +1,8 @@
-# 🍕 Build Your Pizza
+# 🍕 Know Your Slice
 
-A phone-first icebreaker for ~60 people. Scan a QR, fill in five pizza slices, then get five
-different people to sign one slice each. A full pizza means five real conversations.
+A phone-first icebreaker for ~60 people. Scan a QR, fill in eight pizza slices, find people who
+answered the same as you, and get eight different people to sign one slice each. A full pizza means
+eight real conversations.
 
 No database to set up and nothing to host — SQLite is built into Node.
 

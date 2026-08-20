@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { FlyingPizzas } from "@/components/ui";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Build Your Pizza",
-  description: "Collect five slices from five new friends.",
+  title: "Know Your Slice",
+  description: "Collect eight slices from eight new friends.",
   icons: {
     icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🍕</text></svg>",
   },
@@ -27,7 +28,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {/* Sits behind every `.shell`, so the pizzas drift across all screens. */}
+        <FlyingPizzas />
+        {children}
+      </body>
     </html>
   );
 }

@@ -106,19 +106,12 @@ export default function PlayPage() {
             </>
           )}
         </p>
-
-        {me.minOtherTables > 0 && (
-          <p className="tiny muted center">
-            Out-of-table rule: {me.outsideTableCount}/{me.minOtherTables} signatures from other tables
-            {me.meetsTableRule ? " ✅" : ""}
-          </p>
-        )}
       </section>
 
       {phase === "build" && (
         <Alert kind="info">
-          Trading hasn&rsquo;t opened yet — fill in all five answers now so you&rsquo;re ready the second
-          lunch starts.
+          Trading hasn&rsquo;t opened yet — fill in all eight answers now so you&rsquo;re ready the
+          second lunch starts.
         </Alert>
       )}
 
@@ -145,7 +138,6 @@ export default function PlayPage() {
                 {s.signerName ? (
                   <span className="tiny" style={{ color: "var(--basil)", fontWeight: 800 }}>
                     ✍️ Signed by {s.signerName}
-                    {s.signerTable ? ` (table ${s.signerTable})` : ""}
                   </span>
                 ) : s.answer.trim() ? (
                   <span className="tiny muted">Waiting for a signature</span>

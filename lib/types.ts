@@ -6,7 +6,6 @@ export type PlayerDto = {
   id: string;
   code: string;
   name: string;
-  tableNo: string;
   createdAt: number;
 };
 
@@ -19,7 +18,6 @@ export type SliceDto = {
   quickPicks: string[];
   answer: string;
   signerName: string | null;
-  signerTable: string | null;
   signedAt: number | null;
 };
 
@@ -29,9 +27,6 @@ export type MeDto = {
   signedCount: number;
   answeredCount: number;
   complete: boolean;
-  outsideTableCount: number;
-  minOtherTables: number;
-  meetsTableRule: boolean;
   givenCount: number;
   phase: Phase;
   signUrl: string;
@@ -49,9 +44,8 @@ export type LookupSliceDto = {
 };
 
 export type LookupDto = {
-  target: { name: string; code: string; tableNo: string };
+  target: { name: string; code: string };
   alreadySignedIdx: number | null;
-  sameTable: boolean;
   slices: LookupSliceDto[];
   phase: Phase;
 };
@@ -60,26 +54,21 @@ export type BoardRow = {
   id: string;
   name: string;
   code: string;
-  tableNo: string;
   answered: number;
   signed: number;
   given: number;
-  outsideTables: number;
   complete: boolean;
-  strict: boolean;
 };
 
 export type StatsDto = {
   phase: Phase;
   eventName: string;
-  minOtherTables: number;
   sliceCount: number;
   players: number;
   answeredSlices: number;
   totalSlices: number;
   signatures: number;
   completed: number;
-  completedStrict: number;
   noSignaturesYet: number;
   board: BoardRow[];
   feed: { at: number; signer: string; target: string; title: string }[];

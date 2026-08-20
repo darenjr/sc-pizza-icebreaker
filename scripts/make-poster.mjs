@@ -30,7 +30,7 @@ const html = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Build Your Pizza — scan to join</title>
+<title>Know Your Slice — scan to join</title>
 <style>
   @page { size: A4; margin: 12mm; }
   * { box-sizing: border-box; }
@@ -50,15 +50,16 @@ const html = `<!doctype html>
 </style>
 </head>
 <body>
-  <h1>🍕 Build Your Pizza</h1>
-  <h2>Five slices. Five new friends.</h2>
+  <h1>🍕 Know Your Slice</h1>
+  <h2>Eight slices. Eight new friends.</h2>
   <img src="join-qr.png" alt="QR code to join">
   <p class="url">${url}</p>
   <ol>
-    <li>Scan, enter your name and table number.</li>
-    <li>Fill in your five slices.</li>
-    <li>Find someone new, chat for 60 seconds.</li>
-    <li>Sign one slice each — 5 different people fills your pizza.</li>
+    <li>Scan and enter your name.</li>
+    <li>Fill in your eight slices.</li>
+    <li>Find someone with the same answer on a slice, and connect.</li>
+    <li>Sign one slice each — 8 different people fills your pizza.</li>
+    <li>Rule: connect only with someone in a <b>different CG</b>.</li>
   </ol>
   <p class="foot">Complete pizzas go into the dessert-pizza raffle 🎁</p>
 </body>
@@ -69,4 +70,4 @@ await writeFile(path.join(outDir, "index.html"), html);
 
 console.log(`Poster written for ${url}`);
 console.log(`  ${path.join(outDir, "index.html")}   (open and print, or serve at /poster/)`);
-console.log(`  ${path.join(outDir, "join-qr.png")}  (drop into slides or table tents)`);
+console.log(`  ${path.join(outDir, "join-qr.png")}  (drop into slides or printed table tents)`);

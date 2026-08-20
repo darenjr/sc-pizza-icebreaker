@@ -9,49 +9,82 @@ export type SlicePrompt = {
 };
 
 /**
- * Five slices = 360°. Changing the number of slices changes the pizza geometry,
+ * Eight slices = 360°. Changing the number of slices changes the pizza geometry,
  * the completion rule, and how many people each player must meet, so treat
  * SLICE_PROMPTS.length as the single source of truth everywhere.
+ *
+ * Quick picks matter more than they look: players connect by finding someone
+ * with the *same* answer, and a tap-to-fill chip makes matches far likelier
+ * than free text where everyone writes "coffee" eight different ways.
  */
 export const SLICE_PROMPTS: SlicePrompt[] = [
   {
     idx: 0,
     emoji: "🚇",
     title: "The Commute",
-    prompt: "Which MRT line or region do you live on?",
-    hint: "Bonus: your go-to podcast or playlist on the way to church.",
-    quickPicks: ["East–West 🟢", "North–South 🔴", "North East 🟣", "Circle 🟡", "Downtown 🔵", "Thomson–East Coast 🟤"],
+    prompt: "What MRT line do you stay on?",
+    hint: "Nearest station counts if you're between lines.",
+    quickPicks: [
+      "East–West 🟢",
+      "North–South 🔴",
+      "North East 🟣",
+      "Circle 🟡",
+      "Downtown 🔵",
+      "Thomson–East Coast 🟤",
+    ],
   },
   {
     idx: 1,
-    emoji: "🙌",
-    title: "The Calling",
-    prompt: "Which ministry do you serve in?",
-    hint: "Not serving yet? Name a hidden talent you'd bring to a church camp talent show.",
+    emoji: "🥤",
+    title: "The Drink",
+    prompt: "Coffee, tea, matcha, or water?",
+    hint: "Pick your everyday one, not your special-occasion one.",
+    quickPicks: ["Coffee ☕", "Tea 🍵", "Matcha 🍡", "Water 💧"],
   },
   {
     idx: 2,
-    emoji: "☕",
-    title: "The Non-Negotiable",
-    prompt: "Your exact kopi/teh order — or the one hawker dish you could eat daily for a month.",
-    hint: "Be precise. \"Kopi C kosong siew dai\" energy.",
-    quickPicks: ["Kopi O", "Kopi C siew dai", "Teh peng", "Milo dinosaur", "Chicken rice", "Laksa"],
+    emoji: "🎯",
+    title: "The Hobby",
+    prompt: "What's your hobby?",
+    hint: "The thing you'd do on a free Saturday without being asked.",
+    quickPicks: ["Sports 🏀", "Music 🎸", "Gaming 🎮", "Baking 🧁", "Photography 📷", "Reading 📚"],
   },
   {
     idx: 3,
-    emoji: "🌶️",
-    title: "The Harmless Hot Take",
-    prompt: "Pick one and defend it in five words.",
-    hint: "Pineapple on pizza: genius or crime? · McSpicy is mid · Snoozing 5x vs. instant wake-up",
-    quickPicks: ["Pineapple = genius 🍍", "Pineapple = crime 🚫", "McSpicy is mid", "Snooze 5x forever", "Up at first alarm"],
+    emoji: "😀",
+    title: "The Smile",
+    prompt: "What made you smile this week?",
+    hint: "Small counts. A good breakfast counts.",
   },
   {
     idx: 4,
-    emoji: "😴",
-    title: "The Sunday Ritual",
-    prompt: "What's your immediate plan after service?",
-    hint: "Nap, sports, cafe hopping, studying, or something stranger.",
-    quickPicks: ["Nap 😴", "Sports 🏀", "Cafe hopping ☕", "Studying 📚", "Family lunch 🍚"],
+    emoji: "🤗",
+    title: "The Gratitude",
+    prompt: "What are you grateful for in church?",
+    hint: "A person, a moment, a ministry — anything.",
+  },
+  {
+    idx: 5,
+    emoji: "🍕",
+    title: "The Favourite",
+    prompt: "What is your favourite food?",
+    hint: "Be specific enough that someone can agree loudly.",
+    quickPicks: ["Chicken rice", "Laksa", "Pizza 🍕", "Bak chor mee", "Nasi lemak", "Korean BBQ"],
+  },
+  {
+    idx: 6,
+    emoji: "📍",
+    title: "The Beginning",
+    prompt: "When did you join church?",
+    hint: "Tell them the year too — \"2019, at Singpost\".",
+    quickPicks: ["IM", "Singpost", "Dhoby Ghaut"],
+  },
+  {
+    idx: 7,
+    emoji: "🏠",
+    title: "The New Building",
+    prompt: "What are you looking forward to in the new building?",
+    hint: "The room, the vibe, the coffee, the parking — anything.",
   },
 ];
 

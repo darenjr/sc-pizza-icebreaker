@@ -179,14 +179,7 @@ function SignInner() {
                     <span className="card__label">Signing for</span>
                     <h2>{view.target.name}</h2>
                   </div>
-                  {view.target.tableNo && <span className="badge">Table {view.target.tableNo}</span>}
                 </div>
-                {view.sameTable && (
-                  <p className="tiny muted">
-                    Same table as you — remember at least {me.minOtherTables} of your own signatures
-                    must come from other tables.
-                  </p>
-                )}
               </div>
 
               {view.alreadySignedIdx !== null ? (
@@ -197,7 +190,9 @@ function SignInner() {
                 </Alert>
               ) : (
                 <p className="small muted">
-                  Read their answers, chat for 60 seconds, then sign the one you connected on.
+                  Find the slice where their answer matches yours, share more about yourself, then
+                  sign that one. <strong>Different CG only</strong> — if you&rsquo;re in the same CG,
+                  go find someone else.
                 </p>
               )}
 

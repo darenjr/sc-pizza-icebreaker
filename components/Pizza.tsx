@@ -56,15 +56,23 @@ function textArcPath(a0: number, a1: number): string {
     : `M ${f(pt(a0, R_TEXT))} A ${R_TEXT} ${R_TEXT} 0 0 1 ${f(pt(a1, R_TEXT))}`;
 }
 
+/** [radius, angle offset from the wedge's centre line], tuned against a 72° wedge. */
 const PEPPERONI: [number, number][] = [
   [72, -15],
   [104, 13],
   [124, -17],
 ];
 
+/** Reference wedge width the pepperoni and crust text were laid out against. */
+const REF_STEP = 72;
+
 export default function Pizza({ slices, activeIdx, onSelect, readOnly }: Props) {
   const n = slices.length;
   const step = 360 / n;
+  // Narrower wedges need the toppings pulled toward the centre line and the
+  // crust name set smaller, or both spill over the slice boundary.
+  const angleScale = Math.min(1, step / REF_STEP);
+  const crustFontSize = step >= 60 ? 13 : 11;
 
   return (
     <div className="pizza-wrap">
@@ -132,7 +140,7 @@ export default function Pizza({ slices, activeIdx, onSelect, readOnly }: Props) 
 
               {signed &&
                 PEPPERONI.map(([r, off], k) => {
-                  const [px, py] = pt(mid + off, r);
+                  const [px, py] = pt(mid + off * angleScale, r);
                   return (
                     <circle
                       key={k}
@@ -155,13 +163,13 @@ export default function Pizza({ slices, activeIdx, onSelect, readOnly }: Props) 
 
               <path id={`arc-${slice.idx}`} d={textArcPath(a0, a1)} fill="none" />
               {signed ? (
-                <text className="pizza__crust-text">
+                <text className="pizza__crust-text" fontSize={crustFontSize}>
                   <textPath href={`#arc-${slice.idx}`} startOffset="50%" textAnchor="middle">
                     {name}
                   </textPath>
                 </text>
               ) : (
-                <text className="pizza__num">
+                <text className="pizza__num" fontSize={crustFontSize}>
                   <textPath href={`#arc-${slice.idx}`} startOffset="50%" textAnchor="middle">
                     {answered ? "NEEDS A SIGN" : `SLICE ${slice.idx + 1}`}
                   </textPath>

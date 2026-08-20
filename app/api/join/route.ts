@@ -18,11 +18,10 @@ export async function POST(req: Request) {
 
     const body = await readJson(req);
     const name = str(body.name, 40);
-    const tableNo = str(body.tableNo, 16);
 
     if (name.length < 2) return fail("Please enter your name (at least 2 characters).");
 
-    const { player, token } = createPlayer(name, tableNo);
+    const { player, token } = createPlayer(name);
     await setPlayerCookie(token);
     return ok({ player, resumed: false });
   } catch (err) {

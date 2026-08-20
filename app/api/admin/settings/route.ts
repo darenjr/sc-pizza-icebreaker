@@ -22,12 +22,6 @@ export async function POST(req: Request) {
     const eventName = str(body.eventName, 60);
     if (eventName) setSetting("event_name", eventName);
 
-    if (body.minOtherTables !== undefined) {
-      const n = Number(body.minOtherTables);
-      if (!Number.isInteger(n) || n < 0 || n > 5) return fail("Out-of-table rule must be 0–5.");
-      setSetting("min_other_tables", String(n));
-    }
-
     return ok(adminStats());
   } catch (err) {
     return handle(err);

@@ -27,7 +27,6 @@ function JoinPage() {
   const nextPath = params.get("next")?.startsWith("/") ? (params.get("next") as string) : "/play";
   const [checking, setChecking] = useState(true);
   const [name, setName] = useState("");
-  const [tableNo, setTableNo] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,7 +44,7 @@ function JoinPage() {
     setError(null);
     setBusy(true);
     try {
-      await post<{ player: PlayerDto }>("/api/join", { name, tableNo });
+      await post<{ player: PlayerDto }>("/api/join", { name });
       router.replace(nextPath);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not join.");
@@ -63,17 +62,17 @@ function JoinPage() {
 
   return (
     <main className="shell">
-      <Masthead title="Build Your Pizza" />
+      <Masthead title="Know Your Slice" hero />
 
       <section className="card card--hero stack">
         <h1>
-          Five slices.
+          Eight slices.
           <br />
-          Five new friends.
+          Eight new friends.
         </h1>
         <p className="muted">
-          Fill in your five slices, then get five different people to sign one each. A finished pizza
-          gets you into the raffle.
+          Fill in your eight slices, then find people who answered the same as you. Chat, then sign
+          each other&rsquo;s slices. A finished pizza gets you into the raffle.
         </p>
       </section>
 
@@ -81,18 +80,23 @@ function JoinPage() {
         <h2>How it works</h2>
         <ol className="stack" style={{ margin: 0, paddingLeft: "1.2em" }}>
           <li>
-            <strong>Fill your slices.</strong> Five quick prompts — commute, ministry, kopi order, hot
-            take, Sunday plans.
+            <strong>Fill your slices.</strong> Eight quick prompts — MRT line, drink, hobby, favourite
+            food, and more.
           </li>
           <li>
-            <strong>Go find someone new.</strong> Chat for 60 seconds about an answer you share or
-            strongly disagree with.
+            <strong>Find someone with the same answer</strong> on one of your slices, and connect.
+            Share more about yourself based on the slice you matched on.
           </li>
           <li>
-            <strong>Sign each other&rsquo;s slice.</strong> They enter your 4-character code, you enter
-            theirs. One slice each.
+            <strong>Thank them, then sign each other&rsquo;s slices.</strong> They enter your
+            4-character code, you enter theirs. One slice each.
           </li>
         </ol>
+        <Alert kind="info">
+          <strong>The rule:</strong> you can only connect with someone in a{" "}
+          <strong>different CG</strong> from you. Eight slices from eight different people makes one
+          delicious mix-and-match pizza 😛
+        </Alert>
       </section>
 
       <form className="card stack" onSubmit={join}>
@@ -108,17 +112,6 @@ function JoinPage() {
             autoComplete="name"
             maxLength={40}
             required
-          />
-        </label>
-
-        <label className="field">
-          Your table number <span className="muted tiny">— powers the &ldquo;meet other tables&rdquo; rule</span>
-          <input
-            value={tableNo}
-            onChange={(e) => setTableNo(e.target.value)}
-            placeholder="e.g. 7"
-            inputMode="text"
-            maxLength={16}
           />
         </label>
 

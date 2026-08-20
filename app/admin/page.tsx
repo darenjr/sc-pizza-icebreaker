@@ -12,7 +12,7 @@ export default function AdminPage() {
   const [locked, setLocked] = useState(false);
   const [passcode, setPasscode] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [winner, setWinner] = useState<{ name: string; code: string; tableNo: string } | null>(null);
+  const [winner, setWinner] = useState<{ name: string; code: string } | null>(null);
   const [showReset, setShowReset] = useState(false);
   const [resetText, setResetText] = useState("");
 
@@ -52,22 +52,11 @@ export default function AdminPage() {
     }
   }
 
-  async function setRule(minOtherTables: number) {
-    try {
-      setStats(await post<StatsDto>("/api/admin/settings", { minOtherTables }));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not change the rule.");
-    }
-  }
-
-  async function draw(strict: boolean) {
+  async function draw() {
     setError(null);
     setWinner(null);
     try {
-      const res = await post<{ winner: { name: string; code: string; tableNo: string } }>(
-        "/api/admin/raffle",
-        { strict },
-      );
+      const res = await post<{ winner: { name: string; code: string } }>("/api/admin/raffle", {});
       setWinner(res.winner);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not draw.");
@@ -168,10 +157,6 @@ export default function AdminPage() {
         <Metric label="Players joined" value={stats.players} />
         <Metric label="Signatures" value={`${stats.signatures}/${stats.totalSlices}`} sub={`${pct}%`} />
         <Metric label="Complete pizzas" value={stats.completed} />
-        <Metric
-          label={`Meet ${stats.minOtherTables}-table rule`}
-          value={stats.completedStrict}
-        />
         <Metric label="Answers filled" value={`${stats.answeredSlices}/${stats.totalSlices}`} />
         <Metric label="Nobody signed yet" value={stats.noSignaturesYet} />
       </section>
@@ -187,38 +172,20 @@ export default function AdminPage() {
       <section className="card stack">
         <div className="row row--between row--wrap">
           <h2>🎁 Raffle</h2>
-          <div className="row row--wrap">
-            <button className="btn btn--sm btn--gold" onClick={() => draw(true)}>
-              Draw (rule-abiding)
-            </button>
-            <button className="btn btn--sm" onClick={() => draw(false)}>
-              Draw (any complete)
-            </button>
-          </div>
+          <button className="btn btn--sm btn--gold" onClick={draw}>
+            Draw a winner
+          </button>
         </div>
         {winner ? (
           <Alert kind="good">
             🏆 <strong>{winner.name}</strong> ({winner.code})
-            {winner.tableNo ? ` — table ${winner.tableNo}` : ""}
           </Alert>
         ) : (
           <p className="tiny muted">
-            &ldquo;Rule-abiding&rdquo; only includes pizzas with at least {stats.minOtherTables}{" "}
-            signatures from other tables.
+            The pool is every pizza with all {stats.sliceCount} signatures. Draw again for more
+            prizes — winners stay in the pool.
           </p>
         )}
-        <label className="field">
-          Out-of-table rule: {stats.minOtherTables} of {stats.sliceCount} signatures must come from
-          other tables
-          <input
-            type="range"
-            min={0}
-            max={stats.sliceCount}
-            value={stats.minOtherTables}
-            onChange={(e) => setRule(Number(e.target.value))}
-            style={{ minHeight: 0, padding: 0, background: "transparent", border: "none" }}
-          />
-        </label>
       </section>
 
       <section className="card stack">
@@ -253,10 +220,8 @@ export default function AdminPage() {
               <tr>
                 <th>Name</th>
                 <th>Code</th>
-                <th>Table</th>
                 <th>Answers</th>
                 <th>Signed</th>
-                <th>Other tables</th>
                 <th>Given</th>
                 <th>Status</th>
               </tr>
@@ -266,20 +231,16 @@ export default function AdminPage() {
                 <tr key={r.id}>
                   <td>{r.name}</td>
                   <td className="mono">{r.code}</td>
-                  <td>{r.tableNo || "—"}</td>
                   <td>
                     {r.answered}/{stats.sliceCount}
                   </td>
                   <td>
                     {r.signed}/{stats.sliceCount}
                   </td>
-                  <td>{r.outsideTables}</td>
                   <td>{r.given}</td>
                   <td>
-                    {r.strict ? (
+                    {r.complete ? (
                       <span className="badge badge--live">Complete ✓</span>
-                    ) : r.complete ? (
-                      <span className="badge">Full, rule short</span>
                     ) : r.signed === 0 ? (
                       <span className="badge badge--hot">Needs a nudge</span>
                     ) : (

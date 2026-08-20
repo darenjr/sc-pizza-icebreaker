@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Know Your Slice</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🍕</text></svg>"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 24px;
+        background: #fff6e9;
+        background-image: radial-gradient(circle at 12% 8%, rgba(246, 200, 96, 0.28), transparent 42%),
+          radial-gradient(circle at 88% 4%, rgba(200, 68, 46, 0.16), transparent 38%);
+        color: #2b1b12;
+        font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      .logo {
+        font-size: 4rem;
+        animation: spin 1.4s ease-in-out infinite;
+      }
+      @keyframes spin {
+        0%,
+        100% {
+          transform: rotate(-12deg) translateY(0);
+        }
+        50% {
+          transform: rotate(12deg) translateY(-10px);
+        }
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 16px 0 6px;
+      }
+      p {
+        color: #735c4c;
+        font-weight: 600;
+        margin: 0 0 18px;
+      }
+      a.manual {
+        display: inline-block;
+        font-weight: 800;
+        color: #a5331f;
+      }
+      .err {
+        display: none;
+        max-width: 30rem;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .logo {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="logo">🍕</div>
+      <h1>Know Your Slice</h1>
+      <p id="status">Taking you to the game…</p>
+
+      <div class="err" id="err">
+        <p>
+          Couldn't reach the game automatically. It may not be running right now — check with your
+          host.
+        </p>
+        <a class="manual" id="manual" href="#">Try opening it directly →</a>
+      </div>
+    </main>
+
+    <script>
+      /* ------------------------------------------------------------------
+       * Permanent front door for a temporary tunnel URL.
+       *
+       * The live game runs behind a Cloudflare quick tunnel whose hostname
+       * changes every restart. Printed QR codes point here instead, and this
+       * page reads the current target out of target.txt and forwards to it.
+       * Update target.txt (see scripts/update-link.mjs) and the printed QR
+       * keeps working.
+       *
+       * target.txt is fetched with cache-busting because GitHub Pages serves
+       * static files with a 10-minute cache — without this, a phone that
+       * visited before the URL changed would keep using the dead one.
+       * ------------------------------------------------------------------ */
+
+      // Project page => "/<repo-name>". User page (user.github.io) => "".
+      const BASE_PATH = "/sc-pizza-icebreaker";
+
+      function forwardPath() {
+        let p = location.pathname;
+        if (BASE_PATH && p.startsWith(BASE_PATH)) p = p.slice(BASE_PATH.length);
+        p = p.replace(/^\/?(index\.html)?$/, "");
+        return p + location.search + location.hash;
+      }
+
+      function fail(target) {
+        document.getElementById("status").style.display = "none";
+        const err = document.getElementById("err");
+        err.style.display = "block";
+        if (target) {
+          const a = document.getElementById("manual");
+          a.href = target;
+          a.textContent = target;
+        }
+      }
+
+      (async () => {
+        try {
+          // Absolute, not relative: from a deep path like /sc-pizza-icebreaker/sign/ a
+          // relative "target.txt" would resolve to /sc-pizza-icebreaker/sign/target.txt.
+          const res = await fetch(BASE_PATH + "/target.txt?cb=" + Date.now(), { cache: "no-store" });
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const base = (await res.text()).trim().split(/\s+/)[0];
+          if (!/^https?:\/\//.test(base)) throw new Error("target.txt is not a URL");
+
+          const dest = base.replace(/\/$/, "") + forwardPath();
+          // replace() so the back button skips this page instead of looping.
+          location.replace(dest);
+
+          // If the tunnel is down the browser hangs rather than erroring, so
+          // surface a manual link after a few seconds.
+          setTimeout(() => fail(dest), 6000);
+        } catch (e) {
+          fail(null);
+        }
+      })();
+    </script>
+
+    <noscript>
+      <p>This page needs JavaScript. Ask your host for the direct link to the game.</p>
+    </noscript>
+  </body>
+</html>

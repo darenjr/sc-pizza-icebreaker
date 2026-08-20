@@ -5,7 +5,6 @@ export type Player = {
   id: string;
   code: string;
   name: string;
-  tableNo: string;
   createdAt: number;
 };
 
@@ -18,7 +17,6 @@ export type SliceView = {
   quickPicks: string[];
   answer: string;
   signerName: string | null;
-  signerTable: string | null;
   signedAt: number | null;
 };
 
@@ -28,10 +26,6 @@ export type PizzaView = {
   signedCount: number;
   answeredCount: number;
   complete: boolean;
-  /** Distinct signers sitting at a table other than the owner's. */
-  outsideTableCount: number;
-  minOtherTables: number;
-  meetsTableRule: boolean;
   /** How many slices this player has signed on other people's pizzas. */
   givenCount: number;
 };
@@ -41,7 +35,6 @@ type PlayerRow = {
   code: string;
   token: string;
   name: string;
-  table_no: string;
   created_at: number;
 };
 
@@ -50,7 +43,6 @@ type SliceRow = {
   answer: string;
   signer_id: string | null;
   signer_name: string | null;
-  signer_table: string | null;
   signed_at: number | null;
 };
 
@@ -59,7 +51,6 @@ function toPlayer(row: PlayerRow): Player {
     id: row.id,
     code: row.code,
     name: row.name,
-    tableNo: row.table_no,
     createdAt: row.created_at,
   };
 }
@@ -68,20 +59,20 @@ function toPlayer(row: PlayerRow): Player {
 /* Players                                                             */
 /* ------------------------------------------------------------------ */
 
-export function createPlayer(name: string, tableNo: string): { player: Player; token: string } {
+export function createPlayer(name: string): { player: Player; token: string } {
   const id = newId();
   const token = newToken();
   const code = newCode();
   const now = Date.now();
 
   db.prepare(
-    "INSERT INTO players (id, code, token, name, table_no, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-  ).run(id, code, token, name, tableNo, now);
+    "INSERT INTO players (id, code, token, name, created_at) VALUES (?, ?, ?, ?, ?)",
+  ).run(id, code, token, name, now);
 
   const insertSlice = db.prepare("INSERT INTO slices (id, player_id, idx) VALUES (?, ?, ?)");
   for (let i = 0; i < SLICE_COUNT; i++) insertSlice.run(newId(), id, i);
 
-  return { player: { id, code, name, tableNo, createdAt: now }, token };
+  return { player: { id, code, name, createdAt: now }, token };
 }
 
 export function getPlayerByToken(token: string): Player | null {
@@ -110,7 +101,7 @@ export function countPlayers(): number {
 export function getPizza(player: Player): PizzaView {
   const rows = db
     .prepare(
-      "SELECT idx, answer, signer_id, signer_name, signer_table, signed_at FROM slices WHERE player_id = ? ORDER BY idx",
+      "SELECT idx, answer, signer_id, signer_name, signed_at FROM slices WHERE player_id = ? ORDER BY idx",
     )
     .all(player.id) as unknown as SliceRow[];
 
@@ -126,20 +117,12 @@ export function getPizza(player: Player): PizzaView {
       quickPicks: p.quickPicks ?? [],
       answer: row?.answer ?? "",
       signerName: row?.signer_name ?? null,
-      signerTable: row?.signer_table ?? null,
       signedAt: row?.signed_at ?? null,
     };
   });
 
   const signedCount = slices.filter((s) => s.signerName).length;
   const answeredCount = slices.filter((s) => s.answer.trim().length > 0).length;
-
-  const outsideTables = new Set(
-    slices
-      .filter((s) => s.signerName && (s.signerTable ?? "") !== player.tableNo)
-      .map((s) => s.signerName as string),
-  );
-  const minOtherTables = Number(getSetting("min_other_tables")) || 0;
 
   const given = db
     .prepare("SELECT COUNT(*) AS n FROM slices WHERE signer_id = ?")
@@ -151,9 +134,6 @@ export function getPizza(player: Player): PizzaView {
     signedCount,
     answeredCount,
     complete: signedCount >= SLICE_COUNT,
-    outsideTableCount: outsideTables.size,
-    minOtherTables,
-    meetsTableRule: outsideTables.size >= minOtherTables,
     givenCount: given.n,
   };
 }
@@ -235,10 +215,10 @@ export function signSlice(
   try {
     result = db
       .prepare(
-        `UPDATE slices SET signer_id = ?, signer_name = ?, signer_table = ?, signed_at = ?
+        `UPDATE slices SET signer_id = ?, signer_name = ?, signed_at = ?
          WHERE player_id = ? AND idx = ? AND signer_id IS NULL`,
       )
-      .run(signer.id, signer.name, signer.tableNo, now, target.id, idx);
+      .run(signer.id, signer.name, now, target.id, idx);
   } catch {
     // The partial unique index caught a double-tap racing the check above.
     throw new GameError(`You already signed one of ${target.name}'s slices.`);
@@ -259,7 +239,6 @@ export function signSlice(
       quickPicks: p.quickPicks ?? [],
       answer: slice.answer,
       signerName: signer.name,
-      signerTable: signer.tableNo,
       signedAt: now,
     },
   };
@@ -281,9 +260,8 @@ export function getSignableView(signer: Player, target: Player) {
   const mine = rows.find((r) => r.signer_id === signer.id) ?? null;
 
   return {
-    target: { name: target.name, code: target.code, tableNo: target.tableNo },
+    target: { name: target.name, code: target.code },
     alreadySignedIdx: mine ? mine.idx : null,
-    sameTable: target.tableNo !== "" && target.tableNo === signer.tableNo,
     slices: rows.map((r) => {
       const p = SLICE_PROMPTS[r.idx];
       return {
@@ -306,61 +284,47 @@ export function getSignableView(signer: Player, target: Player) {
 export type AdminStats = {
   phase: string;
   eventName: string;
-  minOtherTables: number;
   sliceCount: number;
   players: number;
   answeredSlices: number;
   totalSlices: number;
   signatures: number;
   completed: number;
-  completedStrict: number;
   noSignaturesYet: number;
   board: {
     id: string;
     name: string;
     code: string;
-    tableNo: string;
     answered: number;
     signed: number;
     given: number;
-    outsideTables: number;
     complete: boolean;
-    strict: boolean;
   }[];
   feed: { at: number; signer: string; target: string; title: string }[];
 };
 
 export function adminStats(): AdminStats {
-  const minOtherTables = Number(getSetting("min_other_tables")) || 0;
-
   const players = db
     .prepare("SELECT * FROM players ORDER BY created_at")
     .all() as unknown as PlayerRow[];
 
   const board = players.map((p) => {
     const rows = db
-      .prepare("SELECT answer, signer_id, signer_table FROM slices WHERE player_id = ?")
-      .all(p.id) as unknown as { answer: string; signer_id: string | null; signer_table: string | null }[];
+      .prepare("SELECT answer, signer_id FROM slices WHERE player_id = ?")
+      .all(p.id) as unknown as { answer: string; signer_id: string | null }[];
     const answered = rows.filter((r) => r.answer.trim().length > 0).length;
     const signed = rows.filter((r) => r.signer_id).length;
-    const outside = new Set(
-      rows.filter((r) => r.signer_id && (r.signer_table ?? "") !== p.table_no).map((r) => r.signer_id as string),
-    ).size;
     const given = db.prepare("SELECT COUNT(*) AS n FROM slices WHERE signer_id = ?").get(p.id) as {
       n: number;
     };
-    const complete = signed >= SLICE_COUNT;
     return {
       id: p.id,
       name: p.name,
       code: p.code,
-      tableNo: p.table_no,
       answered,
       signed,
       given: given.n,
-      outsideTables: outside,
-      complete,
-      strict: complete && outside >= minOtherTables,
+      complete: signed >= SLICE_COUNT,
     };
   });
 
@@ -388,14 +352,12 @@ export function adminStats(): AdminStats {
   return {
     phase: getPhase(),
     eventName: getSetting("event_name"),
-    minOtherTables,
     sliceCount: SLICE_COUNT,
     players: players.length,
     answeredSlices: totals.answered ?? 0,
     totalSlices: totals.total,
     signatures: totals.signed ?? 0,
     completed: board.filter((b) => b.complete).length,
-    completedStrict: board.filter((b) => b.strict).length,
     noSignaturesYet: board.filter((b) => b.signed === 0).length,
     board,
     feed: feed.map((f) => ({
@@ -407,46 +369,41 @@ export function adminStats(): AdminStats {
   };
 }
 
-export function drawRaffle(strict: boolean): { name: string; code: string; tableNo: string } | null {
-  const pool = adminStats().board.filter((b) => (strict ? b.strict : b.complete));
+export function drawRaffle(): { name: string; code: string } | null {
+  const pool = adminStats().board.filter((b) => b.complete);
   if (pool.length === 0) return null;
   const pick = pool[Math.floor(Math.random() * pool.length)];
-  return { name: pick.name, code: pick.code, tableNo: pick.tableNo };
+  return { name: pick.name, code: pick.code };
 }
 
 export function exportCsv(): string {
   const rows = db
     .prepare(
-      `SELECT p.name AS owner, p.code AS code, p.table_no AS table_no, s.idx AS idx,
-              s.answer AS answer, s.signer_name AS signer, s.signer_table AS signer_table,
-              s.signed_at AS signed_at
+      `SELECT p.name AS owner, p.code AS code, s.idx AS idx,
+              s.answer AS answer, s.signer_name AS signer, s.signed_at AS signed_at
        FROM players p JOIN slices s ON s.player_id = p.id
        ORDER BY p.created_at, s.idx`,
     )
     .all() as unknown as {
     owner: string;
     code: string;
-    table_no: string;
     idx: number;
     answer: string;
     signer: string | null;
-    signer_table: string | null;
     signed_at: number | null;
   }[];
 
   const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
-  const lines = ["owner,code,table,slice,prompt,answer,signed_by,signer_table,signed_at"];
+  const lines = ["owner,code,slice,prompt,answer,signed_by,signed_at"];
   for (const r of rows) {
     lines.push(
       [
         esc(r.owner),
         esc(r.code),
-        esc(r.table_no),
         String(r.idx + 1),
         esc(SLICE_PROMPTS[r.idx]?.title ?? ""),
         esc(r.answer),
         esc(r.signer ?? ""),
-        esc(r.signer_table ?? ""),
         esc(r.signed_at ? new Date(r.signed_at).toISOString() : ""),
       ].join(","),
     );
